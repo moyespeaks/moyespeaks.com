@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Life On Purpose — Discover Your Ikigai</title>
+<style>
+  :root{
+    --navy:#1C2340; --gold:#F5A623; --teal:#00C4B4; --red:#E8524A;
+    --bg:#F7F7F5; --card:#FFFFFF; --ink:#1C2340; --muted:#6b7280;
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:Calibri, 'Segoe UI', Arial, sans-serif;
+    background:var(--bg); color:var(--ink); margin:0; padding:0;
+    min-height:100vh;
+  }
+  .wrap{max-width:720px; margin:0 auto; padding:32px 20px 80px;}
+  .brandbar{display:flex; align-items:center; gap:10px; margin-bottom:24px;}
+  .dot{width:12px; height:12px; border-radius:50%;}
+  .brandbar span{font-weight:700; letter-spacing:0.5px; color:var(--navy);}
+  .card{
+    background:var(--card); border-radius:16px; padding:32px;
+    box-shadow:0 2px 12px rgba(28,35,64,0.08); margin-bottom:20px;
+  }
+  h1{font-size:1.6rem; color:var(--navy); margin:0 0 8px;}
+  h2{font-size:1.25rem; color:var(--navy); margin:0 0 16px;}
+  p.lead{color:var(--muted); margin:0 0 24px; line-height:1.5;}
+  label{display:block; font-weight:600; margin:16px 0 6px; color:var(--navy);}
+  input[type=text], textarea, select{
+    width:100%; padding:12px 14px; border:1px solid #ddd; border-radius:10px;
+    font-family:inherit; font-size:1rem; resize:vertical; background:white;
+  }
+  textarea{min-height:90px;}
+  .btn{
+    display:inline-block; padding:12px 28px; border-radius:999px; border:none;
+    font-weight:700; font-size:1rem; cursor:pointer; margin-top:20px;
+    transition:transform 0.1s ease;
+  }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{background:var(--teal); color:white;}
+  .btn-secondary{background:var(--navy); color:white; margin-left:10px;}
+  .btn:disabled{opacity:0.5; cursor:not-allowed;}
+  .tag-grid{display:flex; flex-wrap:wrap; gap:10px; margin-top:8px;}
+  .tag{
+    padding:9px 16px; border:2px solid #ddd; border-radius:999px; cursor:pointer;
+    font-size:0.92rem; user-select:none; transition:all 0.15s ease;
+  }
+  .tag.selected{border-color:var(--teal); background:#E6FBF9; color:var(--navy); font-weight:700;}
+  .progress{display:flex; gap:6px; margin-bottom:24px;}
+  .progress .seg{flex:1; height:6px; border-radius:4px; background:#e5e5e5;}
+  .progress .seg.done{background:var(--teal);}
+  .progress .seg.current{background:var(--gold);}
+  .code-display{
+    background:var(--navy); color:white; padding:16px; border-radius:12px;
+    text-align:center; font-size:1.4rem; font-weight:700; letter-spacing:2px;
+    margin:20px 0;
+  }
+  .small{font-size:0.85rem; color:var(--muted);}
+  .ikigai-summary{
+    display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:20px 0;
+  }
+  .ikigai-box{
+    border:2px solid var(--teal); border-radius:12px; padding:16px;
+  }
+  .ikigai-box h3{margin:0 0 8px; font-size:0.95rem; color:var(--navy);}
+  .ikigai-box .tags{font-size:0.9rem; color:var(--muted);}
+  .mission{
+    background:linear-gradient(135deg, var(--navy), #2c3560); color:white;
+    padding:28px; border-radius:16px; margin-top:24px; line-height:1.7;
+    font-size:1.1rem; font-style:italic; white-space:pre-line;
+  }
+  .status{font-size:0.85rem; color:var(--muted); margin-top:10px;}
+  .error{color:var(--red); font-size:0.9rem; margin-top:10px;}
+  .hidden{display:none;}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <div class="brandbar">
+    <div class="dot" style="background:var(--teal)"></div>
+    <div class="dot" style="background:var(--gold)"></div>
+    <div class="dot" style="background:var(--red)"></div>
+    <span>LIFE ON PURPOSE</span>
+  </div>
+
+  <!-- WELCOME / RESUME SCREEN -->
+  <div class="card" id="screen-welcome">
+    <h1>Welcome to Life On Purpose</h1>
+    <p class="lead">A 4-session journey to discover what makes you, you — and what you're here to do with it.</p>
+
+    <label for="nameInput">What's your first name?</label>
+    <input type="text" id="nameInput" placeholder="Type your name">
+    <button class="btn btn-primary" id="startBtn">Start Session 1</button>
+
+    <div style="margin-top:32px; padding-top:24px; border-top:1px solid #eee;">
+      <label for="resumeInput">Already have a code? Resume here.</label>
+      <input type="text" id="resumeInput" placeholder="e.g. TRE-4829" style="text-transform:uppercase;">
+      <button class="btn btn-secondary" id="resumeBtn">Resume</button>
+    </div>
+    <div class="error hidden" id="welcomeError"></div>
+
+    <div style="margin-top:20px; padding-top:16px; border-top:1px solid #f0f0f0;">
+      <label style="display:flex; align-items:center; gap:8px; font-weight:400; cursor:pointer;">
+        <input type="checkbox" id="facilitatorToggle" style="width:auto;">
+        <span class="small" style="margin:0;">I'm a facilitator entering this on behalf of a student</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- FACILITATOR MODE BANNER -->
+  <div class="hidden" id="facilitatorBanner" style="background:var(--gold); color:var(--navy); padding:10px 16px; border-radius:10px; font-weight:700; text-align:center; margin-bottom:16px;">
+    Facilitator entry mode — entering results on behalf of a student, not self-entered
+  </div>
+
+  <!-- MAIN APP (sessions) -->
+  <div id="app" class="hidden">
+    <div class="progress">
+      <div class="seg" id="seg1"></div>
+      <div class="seg" id="seg2"></div>
+      <div class="seg" id="seg3"></div>
+      <div class="seg" id="seg4"></div>
+    </div>
+    <div class="code-display" id="codeBanner"></div>
+
+    <!-- SESSION 1 -->
+    <div class="card session" id="session-1">
+      <h2>Session 1 — Who Are You? (Personality)</h2>
+      <p class="lead">Go take the free test at <a href="https://www.16personalities.com/free-personality-test" target="_blank" rel="noopener" style="color:var(--teal); font-weight:700;">16personalities.com</a>, then come back and enter your result below.</p>
+      <label>Your 4-letter type (e.g. INFP, ESTJ)</label>
+      <input type="text" id="mbtiInput" placeholder="INFP" maxlength="4" style="text-transform:uppercase;">
+      <label>What nickname does the site give your type? (e.g. "The Mediator," "The Campaigner")</label>
+      <input type="text" id="mbtiNickname" placeholder="The Mediator">
+      <label>Copy the short description your results page gives for your type</label>
+      <textarea id="mbtiDescription" placeholder="Paste the paragraph the site wrote about your type — this is what actually drives your statement, so copy it as exactly as you can."></textarea>
+      <label>Scroll to the "Career Path" section on your results page — copy that paragraph too</label>
+      <textarea id="mbtiCareerPath" placeholder="Paste the Career Path paragraph — this is the site's own take on what kind of work fits you, separate from your personality description."></textarea>
+      <label>Now scroll to "Personal Growth" — copy that paragraph too. It's honest, not just flattering — that's the point.</label>
+      <textarea id="mbtiPersonalGrowth" placeholder="Paste the Personal Growth paragraph — this is the one part of your report that names a real challenge, not just a strength."></textarea>
+      <button class="btn btn-primary" onclick="completeSession(1)">Complete Session 1</button>
+      <div class="status" id="status1"></div>
+    </div>
+
+    <!-- SESSION 2 -->
+    <div class="card session hidden" id="session-2">
+      <h2>Session 2 — What Are Your Gifts? (Character Strengths)</h2>
+      <p class="lead">Take the free VIA Character Strengths survey at <a href="https://www.viacharacter.org/survey/account/register" target="_blank" rel="noopener" style="color:var(--teal); font-weight:700;">viacharacter.org</a>. Your results page shows your strengths ranked #1 through #24 — enter your <strong>exact top 5, in that exact order</strong>.</p>
+      <label>#1 strength (your very top one)</label>
+      <select id="viaRank1"></select>
+      <label>#2 strength</label>
+      <select id="viaRank2"></select>
+      <label>#3 strength</label>
+      <select id="viaRank3"></select>
+      <label>#4 strength</label>
+      <select id="viaRank4"></select>
+      <label>#5 strength</label>
+      <select id="viaRank5"></select>
+      <button class="btn btn-primary" onclick="completeSession(2)">Complete Session 2</button>
+      <div class="status" id="status2"></div>
+    </div>
+
+    <!-- SESSION 3 -->
+    <div class="card session hidden" id="session-3">
+      <h2>Session 3 — What Could You Be Paid For? (Career Fit)</h2>
+      <p class="lead">Take the free Holland Code assessment at <a href="https://www.mynextmove.org/explore/ip" target="_blank" rel="noopener" style="color:var(--teal); font-weight:700;">My Next Move (mynextmove.org)</a>.</p>
+      <label>Your exact 3-letter Holland Code (shown on your results page, e.g. "SAE")</label>
+      <input type="text" id="hollandCode" placeholder="SAE" maxlength="3" style="text-transform:uppercase;">
+      <label>Copy the exact "Best Fit Careers" your results page listed</label>
+      <textarea id="s3reflect" placeholder="e.g. graphic designer, physical therapist, teacher — copy the exact job titles your report suggested"></textarea>
+      <p class="small" style="margin-top:-8px; margin-bottom:16px;">This is the most important field on this page — the more exactly you copy what the site said, the more this reflects the real assessment, not a guess.</p>
+      <button class="btn btn-primary" onclick="completeSession(3)">Complete Session 3</button>
+      <div class="status" id="status3"></div>
+    </div>
+
+    <!-- SESSION 4 -->
+    <div class="card session hidden" id="session-4">
+      <h2>Session 4 — Bringing It All Together (Your Ikigai)</h2>
+      <p class="lead">This is where it all connects. Answer honestly — there's no wrong answer.</p>
+
+      <label>What are you most passionate about? (pick all that fit)</label>
+      <div class="tag-grid" id="passionTags"></div>
+
+      <label>Who or what do you want to impact most?</label>
+      <div class="tag-grid" id="impactChoiceTags"></div>
+
+      <label id="worldLabel">What specifically do you want to change for them?</label>
+      <div class="tag-grid" id="worldTags"></div>
+
+      <label>One more thing, and it might be the most important question here: What's something you do — or would do — even if no one ever noticed, thanked you, or paid you for it?</label>
+      <textarea id="authenticIkigai" placeholder="This doesn't need to be big or impressive — it could be as simple as helping a friend, drawing in a notebook, or just showing up for someone. Answer honestly, there's no wrong answer here."></textarea>
+
+      <label>Who in your life makes you feel most like your real self — and what do you two usually do together?</label>
+      <textarea id="relationalAnchor" placeholder="A sibling, a friend, a coach, a grandparent — anyone. Doesn't need to be dramatic, just real."></textarea>
+
+      <button class="btn btn-primary" onclick="generateIkigai()">Reveal My Ikigai</button>
+      <div class="status" id="status4"></div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="card hidden" id="session-result">
+      <h2 id="resultName"></h2>
+      <div class="ikigai-summary" id="ikigaiSummary"></div>
+      <div class="mission" id="missionBox">Generating your personal mission statement...</div>
+      <button class="btn btn-secondary hidden" id="retryBtn" onclick="fetchMissionStatement()" style="margin-top:12px;">Try Again</button>
+      <button class="btn btn-primary" id="downloadPdfBtn" onclick="downloadPDF()" style="margin-top:20px;">Download PDF Keepsake</button>
+      <div style="margin-top:20px; padding-top:20px; border-top:1px solid #eee;">
+        <label>Or send it to your email</label>
+        <input type="text" id="emailInput" placeholder="your@email.com">
+        <button class="btn btn-secondary" onclick="emailStatement()">Email Me This</button>
+        <div class="status" id="emailStatus"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// WORKER CONFIG
+// ══════════════════════════════════════
+// WHY this is the only line you need to change after deploying the
+// worker: everything else in this file talks to whatever URL is here.
+// Replace with your actual deployed Worker URL from Cloudflare.
+const WORKER_URL = 'https://life-on-purpose.moye-speaks-llc.workers.dev';
+
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+let S = {
+  name: '', code: '', enteredBy: 'student',
+  s1: { mbti:'', nickname:'', description:'', careerPath:'', personalGrowth:'' },
+  s2: { strengths:[] },
+  s3: { hollandCode:'', careers:'' },
+  s4: { passion:[], impactChoice:'', world:[], authenticIkigai:'', relationalAnchor:'' },
+  currentSession: 1
+};
+
+const OPTIONS = {
+  via: ['Creativity','Curiosity','Judgment','Love of Learning','Perspective','Bravery','Perseverance','Honesty','Zest','Love','Kindness','Social Intelligence','Teamwork','Fairness','Leadership','Forgiveness','Humility','Prudence','Self-Regulation','Appreciation of Beauty','Gratitude','Hope','Humor','Spirituality'],
+  holland: ['Realistic (hands-on/building)','Investigative (research/solving)','Artistic (creative/expressive)','Social (helping/teaching)','Enterprising (leading/persuading)','Conventional (organizing/detail)'],
+  passion: ['Sports & Fitness','Music','Art & Design','Technology','Writing','Helping People','Business','Science','Fashion','Gaming','Cooking','Justice & Advocacy'],
+  impactChoice: ['People', 'My Community', 'The Planet', 'Animals'],
+  world: ['Reduce Poverty','Improve Mental Health','Fight Racism','Protect the Environment','Support Youth','End Hunger','Increase Access to Education','Animal Welfare','Community Safety','Creative Expression for Others']
+};
+
+// WHY debounce saves: without this, every keystroke in a reflection box
+// would hit the worker/KV. 600ms after the student stops typing is the
+// natural pause point — long enough to avoid spamming writes, short
+// enough that nothing feels "unsaved."
+let saveTimeout = null;
+function debouncedSave(){
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(saveProgress, 600);
+}
+
+async function saveProgress(){
+  try{
+    const res = await fetch(`${WORKER_URL}/save`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ code: S.code || null, state: S })
+    });
+    const data = await res.json();
+    if(data.code){
+      S.code = data.code;
+      document.getElementById('codeBanner').textContent = `Your Code: ${S.code} — write this down!`;
+      localStorage.setItem('lop_backup', JSON.stringify(S)); // local fallback
+    }
+  }catch(e){
+    console.warn('Save failed, keeping local backup only', e);
+    localStorage.setItem('lop_backup', JSON.stringify(S));
+  }
+}
+
+async function loadProgress(code){
+  const res = await fetch(`${WORKER_URL}/load?code=${encodeURIComponent(code)}`);
+  if(!res.ok) throw new Error('Code not found');
+  const data = await res.json();
+  return data.state;
+}
+
+// ══════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════
+function renderTags(containerId, options, stateArrayRef, multi=true){
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  options.forEach(opt=>{
+    const el = document.createElement('div');
+    el.className = 'tag';
+    el.textContent = opt;
+    el.onclick = ()=>{
+      if(multi){
+        const idx = stateArrayRef.indexOf(opt);
+        if(idx>-1){ stateArrayRef.splice(idx,1); el.classList.remove('selected'); }
+        else{ stateArrayRef.push(opt); el.classList.add('selected'); }
+      } else {
+        stateArrayRef.length = 0;
+        stateArrayRef.push(opt);
+        [...container.children].forEach(c=>c.classList.remove('selected'));
+        el.classList.add('selected');
+      }
+      debouncedSave();
+    };
+    container.appendChild(el);
+  });
+}
+
+function showSession(n){
+  document.querySelectorAll('.session').forEach(el=>el.classList.add('hidden'));
+  document.getElementById('session-result').classList.add('hidden');
+  document.getElementById(`session-${n}`).classList.remove('hidden');
+  [1,2,3,4].forEach(i=>{
+    const seg = document.getElementById(`seg${i}`);
+    seg.classList.remove('done','current');
+    if(i < n) seg.classList.add('done');
+    if(i === n) seg.classList.add('current');
+  });
+}
+
+function completeSession(n){
+  if(n===1){
+    S.s1.mbti = document.getElementById('mbtiInput').value.toUpperCase().trim();
+    S.s1.nickname = document.getElementById('mbtiNickname').value.trim();
+    S.s1.description = document.getElementById('mbtiDescription').value.trim();
+    S.s1.careerPath = document.getElementById('mbtiCareerPath').value.trim();
+    S.s1.personalGrowth = document.getElementById('mbtiPersonalGrowth').value.trim();
+    if(!S.s1.mbti || S.s1.mbti.length<4){
+      document.getElementById('status1').textContent = 'Please enter your 4-letter type first.';
+      return;
+    }
+  }
+  if(n===2){
+    // WHY we read these in order rather than letting students click any tags:
+    // VIA's real output is a ranked list unique to each person. Capturing the
+    // exact order (not just which strengths exist) is what makes this data
+    // actually come from the site instead of the student's own guess.
+    S.s2.strengths = [1,2,3,4,5]
+      .map(i => document.getElementById(`viaRank${i}`).value.trim())
+      .filter(v => v.length > 0);
+    if(S.s2.strengths.length===0){
+      document.getElementById('status2').textContent = 'Choose at least your #1 strength.';
+      return;
+    }
+    const hasDuplicates = new Set(S.s2.strengths).size !== S.s2.strengths.length;
+    if(hasDuplicates){
+      document.getElementById('status2').textContent = 'Each rank needs a different strength — you picked the same one twice.';
+      return;
+    }
+  }
+  if(n===3){
+    S.s3.hollandCode = document.getElementById('hollandCode').value.toUpperCase().trim();
+    S.s3.careers = document.getElementById('s3reflect').value;
+    if(!S.s3.hollandCode){
+      document.getElementById('status3').textContent = 'Please enter your 3-letter Holland Code.';
+      return;
+    }
+  }
+  S.currentSession = n+1;
+  saveProgress();
+  if(n<4) showSession(n+1);
+}
+
+// ══════════════════════════════════════
+// SESSION 4 → IKIGAI + MISSION STATEMENT
+// ══════════════════════════════════════
+async function generateIkigai(){
+  if(S.s4.passion.length===0 || S.s4.world.length===0 || !S.s4.impactChoice){
+    document.getElementById('status4').textContent = 'Please complete all fields above.';
+    return;
+  }
+  // WHY this field isn't required, unlike the others: it's the most
+  // personal question in the whole tool. Forcing an answer risks a
+  // rushed, fake response, which would corrupt the AI's grounding worse
+  // than an honest skip. Left optional, but strongly invited.
+  S.s4.authenticIkigai = document.getElementById('authenticIkigai').value.trim();
+  S.s4.relationalAnchor = document.getElementById('relationalAnchor').value.trim();
+  saveProgress();
+
+  document.querySelectorAll('.session').forEach(el=>el.classList.add('hidden'));
+  document.getElementById('session-result').classList.remove('hidden');
+  document.getElementById('resultName').textContent = `${S.name}'s Ikigai`;
+
+  const summary = document.getElementById('ikigaiSummary');
+  summary.innerHTML = `
+    <div class="ikigai-box"><h3>PASSION</h3><div class="tags">${S.s4.passion.join(', ')}</div></div>
+    <div class="ikigai-box"><h3>GIFTS (Strengths)</h3><div class="tags">${S.s2.strengths.join(', ')}</div></div>
+    <div class="ikigai-box"><h3>WHO YOU SERVE</h3><div class="tags">${S.s4.impactChoice}: ${S.s4.world.join(', ')}</div></div>
+    <div class="ikigai-box"><h3>WORTH EXPLORING</h3><div class="tags">${S.s3.hollandCode}${S.s3.careers ? ' — ' + S.s3.careers : ''}</div></div>
+  `;
+
+  await fetchMissionStatement();
+}
+
+// WHY this is its own function, separate from generateIkigai(): before,
+// the only way to retry a failed AI call was to redo all four sessions
+// just to reach this one step again. Pulling it out means a "Try Again"
+// button can re-run exactly this piece — nothing else — when a transient
+// failure (like a momentary rate limit) is the actual cause, not
+// anything the student did.
+let retryCountdownTimer = null;
+
+// WHY a visible countdown instead of silently disabling the button:
+// a disabled button with no explanation looks broken, which invites
+// exactly the rapid re-clicking we're trying to prevent. A ticking
+// countdown makes the wait feel intentional, not like a glitch — and
+// makes it physically impossible to hammer the same rate-limit window
+// over and over, which was actively making the real problem worse.
+function startRetryCooldown(seconds = 15){
+  const retryBtn = document.getElementById('retryBtn');
+  if(!retryBtn) return;
+  clearInterval(retryCountdownTimer);
+  let remaining = seconds;
+  retryBtn.disabled = true;
+  retryBtn.textContent = `Try Again (wait ${remaining}s)`;
+  retryCountdownTimer = setInterval(() => {
+    remaining--;
+    if(remaining <= 0){
+      clearInterval(retryCountdownTimer);
+      retryBtn.textContent = 'Try Again';
+      retryBtn.disabled = false;
+    } else {
+      retryBtn.textContent = `Try Again (wait ${remaining}s)`;
+    }
+  }, 1000);
+}
+
+async function fetchMissionStatement(){
+  const missionBox = document.getElementById('missionBox');
+  const retryBtn = document.getElementById('retryBtn');
+  missionBox.textContent = 'Generating your personal mission statement...';
+  clearInterval(retryCountdownTimer);
+  if(retryBtn){
+    retryBtn.classList.add('hidden');
+    retryBtn.disabled = false;
+    retryBtn.textContent = 'Try Again';
+  }
+
+  // WHY this call may fall back to a template: Claude.ai's own sandbox
+  // blocks outbound API calls during in-chat testing. Once this file is
+  // deployed to a live host with a real WORKER_URL, this call reaches
+  // your actual Cloudflare Worker and returns a true AI-generated statement.
+  try{
+    const tags = {
+      viaStrengths: S.s2.strengths,
+      careerTags: [S.s3.hollandCode].filter(Boolean),
+      specificCareers: S.s3.careers || '',
+      passionTags: S.s4.passion,
+      worldTags: S.s4.world
+    };
+    const res = await fetch(`${WORKER_URL}/mission`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ S, tags, impactChoice: S.s4.impactChoice })
+    });
+    const data = await res.json();
+    if(data.statement){
+      missionBox.textContent = data.statement;
+    } else {
+      throw new Error('No statement returned');
+    }
+  }catch(e){
+    // Fallback template — used only if the worker call fails.
+    // WHY it's still two full paragraphs, not one line: a network hiccup
+    // or a temporary Anthropic outage shouldn't mean the student gets a
+    // visibly thinner result than everyone else. This reads like a real
+    // statement even in the worst case — it just isn't AI-personalized.
+    const strengthList = S.s2.strengths.slice(0, 3).join(', ') || 'my strengths';
+    const topStrength = S.s2.strengths[0] || 'who I am';
+    const careerList = S.s3.careers || S.s3.hollandCode || 'the work I care about';
+    missionBox.textContent =
+      `I am ${S.name}, a ${S.s1.mbti} who leads with ${strengthList}. This is who I am — `+
+      `someone who brings these gifts into everything I do, whether people notice it or not.\n\n`+
+      `The same ${topStrength.toLowerCase()} that shows up in how I treat people is part of why I care about `+
+      `${(S.s4.world[0] || 'making things better').toLowerCase()} for ${S.s4.impactChoice.toLowerCase()} — `+
+      `it's not a random cause to me, it connects to who I already am.\n\n`+
+      `I am passionate about ${S.s4.passion.join(' and ')}, and I'm working toward a future in `+
+      `${careerList}. I'm not deciding anything yet — I just want to learn more, starting now.`;
+    // WHY show Try Again only on fallback: if the real AI call already
+    // succeeded, there's nothing to retry — showing the button anyway
+    // would just invite someone to overwrite a good result by accident.
+    if(retryBtn){
+      retryBtn.classList.remove('hidden');
+      startRetryCooldown(15);
+    }
+  }
+}
+
+// ══════════════════════════════════════
+// PDF KEEPSAKE GENERATION
+// ══════════════════════════════════════
+// WHY this runs entirely in the browser: no server call needed, no new
+// account or API key required. jsPDF builds the actual PDF file locally
+// on the student's own device, using the same content already on screen.
+function downloadPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const navy = [28, 35, 64];
+  const gold = [245, 166, 35];
+  const teal = [0, 196, 180];
+  const red = [232, 82, 74];
+  const pageWidth = 210;
+  let y = 0;
+
+  // Header band
+  doc.setFillColor(...navy);
+  doc.rect(0, 0, pageWidth, 32, 'F');
+  // Three brand dots
+  doc.setFillColor(...teal); doc.circle(18, 16, 2.2, 'F');
+  doc.setFillColor(...gold); doc.circle(25, 16, 2.2, 'F');
+  doc.setFillColor(...red);  doc.circle(32, 16, 2.2, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.text('LIFE ON PURPOSE', 40, 19);
+
+  y = 46;
+  // Title + date
+  doc.setTextColor(...navy);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.text(`${S.name}'s Who I Am — So Far`, 15, y);
+  y += 7;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(100, 100, 100);
+  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  doc.text(`${today} — a Life On Purpose reflection, still in progress`, 15, y);
+  y += 4;
+  doc.setDrawColor(...gold);
+  doc.setLineWidth(0.8);
+  doc.line(15, y, pageWidth - 15, y);
+  y += 10;
+
+  // Ikigai 2x2 grid
+  const boxData = [
+    { label: 'PASSION', value: S.s4.passion.join(', ') || '—' },
+    { label: 'GIFTS (STRENGTHS)', value: S.s2.strengths.join(', ') || '—' },
+    { label: 'WHO I SERVE', value: `${S.s4.impactChoice}: ${S.s4.world.join(', ')}` || '—' },
+    { label: 'WORTH EXPLORING', value: (S.s3.hollandCode + (S.s3.careers ? ' — ' + S.s3.careers : '')) || '—' }
+  ];
+  const boxW = (pageWidth - 30 - 6) / 2;
+  const boxH = 26;
+  boxData.forEach((box, i) => {
+    const col = i % 2;
+    const row = Math.floor(i / 2);
+    const bx = 15 + col * (boxW + 6);
+    const by = y + row * (boxH + 6);
+    doc.setDrawColor(...teal);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(bx, by, boxW, boxH, 2, 2, 'S');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(...navy);
+    doc.text(box.label, bx + 4, by + 7);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
+    const wrapped = doc.splitTextToSize(box.value, boxW - 8);
+    doc.text(wrapped.slice(0, 3), bx + 4, by + 13);
+  });
+  y += 2 * boxH + 6 + 10;
+
+  // Mission statement box
+  // WHY this needed rewriting: the old version calculated one box height
+  // and drew everything in it with no check against the actual page
+  // boundary (297mm for A4). Once a statement grew long enough — exactly
+  // what happened with tonight's added growth-edge and relational
+  // content — text kept getting drawn past the visible page edge, which
+  // looks identical to the words being deleted, even though jsPDF
+  // technically still "wrote" them.
+  const missionText = document.getElementById('missionBox').textContent;
+  const paragraphs = missionText.split('\n').filter(p => p.trim().length > 0);
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(11);
+  let allLines = [];
+  paragraphs.forEach(p => {
+    const lines = doc.splitTextToSize(p, pageWidth - 30 - 12);
+    allLines = allLines.concat(lines, ['']);
+  });
+  const lineHeight = 5.5;
+  const boxPadding = 8;
+  const pageBottomMargin = 270; // leaves room for the footer on the final page
+
+  let boxStartY = y;
+  let linesOnThisPage = [];
+
+  function flushMissionBox(startY, lines, isLastSegment){
+    const boxHeight = lines.length * lineHeight + boxPadding * 2;
+    doc.setFillColor(...navy);
+    doc.roundedRect(15, startY, pageWidth - 30, boxHeight, 3, 3, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(11);
+    let textY = startY + boxPadding + 4;
+    lines.forEach(line => {
+      doc.text(line, 15 + boxPadding, textY);
+      textY += lineHeight;
+    });
+    return boxHeight;
+  }
+
+  allLines.forEach((line) => {
+    const tentativeY = boxStartY + boxPadding + 4 + linesOnThisPage.length * lineHeight;
+    if(tentativeY > pageBottomMargin){
+      // This line won't fit — close out the box on the current page,
+      // start a fresh page, and continue from there.
+      flushMissionBox(boxStartY, linesOnThisPage, false);
+      doc.addPage();
+      boxStartY = 20;
+      linesOnThisPage = [line];
+    } else {
+      linesOnThisPage.push(line);
+    }
+  });
+  const finalBoxHeight = flushMissionBox(boxStartY, linesOnThisPage, true);
+  y = boxStartY + finalBoxHeight + 14;
+
+  // Footer
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(150, 150, 150);
+  doc.text('Life On Purpose  •  This reflects where I am right now — not a finished decision, just a direction worth exploring.', 15, 285);
+
+  doc.save(`${S.name.replace(/\s+/g,'_')}_Who_I_Am_So_Far.pdf`);
+}
+
+async function emailStatement(){
+  const email = document.getElementById('emailInput').value.trim();
+  const statusEl = document.getElementById('emailStatus');
+  if(!email || !email.includes('@')){
+    statusEl.textContent = 'Please enter a valid email address.';
+    return;
+  }
+  statusEl.textContent = 'Sending...';
+
+  const ikigaiData = [
+    { label: 'PASSION', value: S.s4.passion.join(', ') || '—' },
+    { label: 'GIFTS (STRENGTHS)', value: S.s2.strengths.join(', ') || '—' },
+    { label: 'WHO I SERVE', value: `${S.s4.impactChoice}: ${S.s4.world.join(', ')}` || '—' },
+    { label: 'WORTH EXPLORING', value: (S.s3.hollandCode + (S.s3.careers ? ' — ' + S.s3.careers : '')) || '—' }
+  ];
+  const missionText = document.getElementById('missionBox').textContent;
+
+  try{
+    const res = await fetch(`${WORKER_URL}/send-email`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ to: email, name: S.name, missionText, ikigaiData })
+    });
+    const data = await res.json();
+    if(data.sent){
+      statusEl.textContent = `Sent! Check ${email}.`;
+    } else {
+      statusEl.textContent = 'Could not send right now — try the PDF download instead.';
+    }
+  }catch(e){
+    statusEl.textContent = 'Could not send right now — try the PDF download instead.';
+  }
+}
+
+// ══════════════════════════════════════
+// WELCOME / RESUME LOGIC
+// ══════════════════════════════════════
+document.getElementById('startBtn').onclick = ()=>{
+  const name = document.getElementById('nameInput').value.trim();
+  if(!name){
+    document.getElementById('welcomeError').textContent = 'Please enter your name.';
+    document.getElementById('welcomeError').classList.remove('hidden');
+    return;
+  }
+  S.name = name;
+  // WHY this reads a checkbox rather than defaulting to facilitator entry:
+  // self-entry stays the default path so a facilitator doesn't become the
+  // bottleneck for every student. This is a deliberate, visible exception,
+  // not a shortcut students would casually land on.
+  S.enteredBy = document.getElementById('facilitatorToggle').checked ? 'facilitator' : 'student';
+  document.getElementById('facilitatorBanner').classList.toggle('hidden', S.enteredBy !== 'facilitator');
+  document.getElementById('screen-welcome').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  init();
+  showSession(1);
+  saveProgress();
+};
+
+document.getElementById('resumeBtn').onclick = async ()=>{
+  const code = document.getElementById('resumeInput').value.toUpperCase().trim();
+  const errEl = document.getElementById('welcomeError');
+  if(!code){ errEl.textContent='Enter a code.'; errEl.classList.remove('hidden'); return; }
+  try{
+    const state = await loadProgress(code);
+    S = state;
+    S.code = code;
+    document.getElementById('facilitatorBanner').classList.toggle('hidden', S.enteredBy !== 'facilitator');
+    document.getElementById('screen-welcome').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    init();
+    // restore field values
+    document.getElementById('mbtiInput').value = S.s1.mbti || '';
+    document.getElementById('mbtiNickname').value = S.s1.nickname || '';
+    document.getElementById('mbtiDescription').value = S.s1.description || '';
+    document.getElementById('mbtiCareerPath').value = S.s1.careerPath || '';
+    document.getElementById('mbtiPersonalGrowth').value = S.s1.personalGrowth || '';
+    [1,2,3,4,5].forEach(i => {
+      document.getElementById(`viaRank${i}`).value = S.s2.strengths[i-1] || '';
+    });
+    document.getElementById('hollandCode').value = S.s3.hollandCode || '';
+    document.getElementById('s3reflect').value = S.s3.careers || '';
+    document.getElementById('authenticIkigai').value = S.s4.authenticIkigai || '';
+    document.getElementById('relationalAnchor').value = S.s4.relationalAnchor || '';
+    document.getElementById('codeBanner').textContent = `Your Code: ${S.code}`;
+    showSession(S.currentSession || 1);
+  }catch(e){
+    errEl.textContent = 'Code not found. Check with your facilitator.';
+    errEl.classList.remove('hidden');
+  }
+};
+
+function init(){
+  populateViaDropdowns();
+  renderTags('passionTags', OPTIONS.passion, S.s4.passion);
+  renderTags('impactChoiceTags', OPTIONS.impactChoice, {
+    // single-select wrapper: fake array push/splice to a single value
+    push:(v)=>{ S.s4.impactChoice=v; }, splice:()=>{}, indexOf:()=>-1, length:0
+  }, false);
+  renderTags('worldTags', OPTIONS.world, S.s4.world);
+}
+
+// WHY dropdowns instead of free text: forces every entry to be one of the
+// 24 real VIA strength names, exactly spelled, every time — no typos,
+// no abbreviations, no inconsistent capitalization. This is what keeps
+// the data trustworthy as "real assessment output" rather than a
+// student's approximate memory of what they saw.
+function populateViaDropdowns(){
+  [1,2,3,4,5].forEach(i => {
+    const select = document.getElementById(`viaRank${i}`);
+    select.innerHTML = `<option value="">-- choose --</option>` +
+      OPTIONS.via.map(s => `<option value="${s}">${s}</option>`).join('');
+  });
+}
+</script>
+</body>
+</html>
