@@ -6,3 +6,6 @@
 
 /* Correct Moye Speaks artwork uses its native white field. */
 .company-brand{background:#fff;padding:0}.company-brand img{width:190px;height:auto;object-fit:contain}.program-brand img{width:150px}@media(max-width:700px){.company-brand{padding:0}.company-brand img{width:128px}.program-brand img{width:105px}}
+
+/* Organization artwork */
+.org-mark img{display:block;max-width:82%;max-height:82px;width:auto;height:auto;object-fit:contain;margin:auto}.org-mark.redemption img{max-height:96px}.org-mark.lyfe img{max-height:88px}.org-mark.dycd img{max-width:88%}
