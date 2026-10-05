@@ -4,3 +4,8 @@
 
 /* Correct Moye Speaks artwork uses its native white field. */
 .company-brand{background:#fff;padding:0}.company-brand img{width:190px;height:auto;object-fit:contain}.program-brand img{width:150px}@media(max-width:700px){.company-brand{padding:0}.company-brand img{width:128px}.program-brand img{width:105px}}
+
+/* Keep the primary header CTA compact on desktop and mobile. */
+.navlinks .cta{padding:10px 14px;font-size:12px;line-height:1.15;white-space:nowrap}
+@media(max-width:850px){.site-nav{gap:12px}.navlinks{gap:8px}.navlinks .cta{padding:9px 11px;font-size:10px;max-width:118px;white-space:normal;text-align:center;line-height:1.15}}
+@media(max-width:480px){.navlinks .cta{padding:8px 9px;font-size:9.5px;max-width:104px}}
